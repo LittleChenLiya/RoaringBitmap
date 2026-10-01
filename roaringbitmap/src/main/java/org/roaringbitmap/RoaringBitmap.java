@@ -379,6 +379,36 @@ public class RoaringBitmap
   }
 
   /**
+   * Preflight check of serialized bitmap data, without materializing the bitmap. The data is
+   * expected to start at the current position of the provided buffer; the buffer is not
+   * modified. The check verifies the cookie, the container count, that keys are strictly
+   * increasing, that the offset table (when present) is consistent with the container layout,
+   * that array/bitmap/run containers remain within bounds, that array values are sorted, that
+   * runs do not overlap, and that declared cardinalities match the container contents.
+   *
+   * @param buffer the serialized data (read-only, direct and array-backed buffers are supported)
+   * @return the check result, reporting the relative offset of the first problem (if any)
+   * @see RoaringBitmapPreflight
+   */
+  public static RoaringBitmapPreflight.Result checkSerialized(ByteBuffer buffer) {
+    return RoaringBitmapPreflight.check(buffer);
+  }
+
+  /**
+   * Preflight check of serialized bitmap data, without materializing the bitmap, rejecting
+   * payloads that declare more containers than the given scan limit.
+   *
+   * @param buffer the serialized data (read-only, direct and array-backed buffers are supported)
+   * @param maxContainers the maximum number of containers to scan (scan limit)
+   * @return the check result, reporting the relative offset of the first problem (if any)
+   * @see RoaringBitmapPreflight
+   */
+  public static RoaringBitmapPreflight.Result checkSerialized(
+      ByteBuffer buffer, int maxContainers) {
+    return RoaringBitmapPreflight.check(buffer, maxContainers);
+  }
+
+  /**
    *
    * Generate a new bitmap with all integers in [rangeStart,rangeEnd) added.
    *
